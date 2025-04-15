@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model order {
+  OrderID     Int           @id @default(autoincrement())
+  OrderDate   DateTime
+  CustomerID  Int?
+  orderdetail orderdetail[]
+}
+
+model orderdetail {
+  OrderDetailID Int     @id @default(autoincrement())
+  OrderID       Int
+  ProductID     Int
+  Quantity      Int
+  Price         Float
+  order         order   @relation(fields: [OrderID], references: [OrderID], map: "OrderDetail_OrderID_fkey")
+  product       product @relation(fields: [ProductID], references: [ProductID], map: "OrderDetail_ProductID_fkey")
+
+  @@index([OrderID], map: "OrderDetail_OrderID_fkey")
+  @@index([ProductID], map: "OrderDetail_ProductID_fkey")
+}
+
+model product {
+  ProductID   Int           @id @default(autoincrement())
+  ProductName String
+  UnitPrice   Float
+  CategoryID  Int
+  SupplierID  Int
+  orderdetail orderdetail[]
+  stock       stock?
+}
+
+model stock {
+  ProductID       Int     @id
+  QuantityInStock Int
+  product         product @relation(fields: [ProductID], references: [ProductID], map: "Stock_ProductID_fkey")
+}
