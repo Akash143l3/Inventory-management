@@ -1,52 +1,70 @@
-"use client";
 import Link from "next/link";
-
-import { useEffect, useState } from "react";
-
-type Product = {
-  ProductID: number;
-  ProductName: string;
-  UnitPrice: number;
-  stock?: {
-    QuantityInStock: number;
-  } | null;
-};
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import DashboardStats from "../components/DashboardStats";
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
-
-  useEffect(() => {
-    fetch("/api/products")
-      .then((res) => res.json())
-      .then(setProducts);
-  }, []);
-
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Products</h1>
-      <Link href="/products/add" className="text-blue-500 underline">
-        Add Product
-      </Link>
-      <table className="w-full mt-4 border">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((p) => (
-            <tr key={p.ProductID}>
-              <td>{p.ProductID}</td>
-              <td>{p.ProductName}</td>
-              <td>{p.UnitPrice}</td>
-              <td>{p.stock?.QuantityInStock ?? 0}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-6 px-6 py-8 bg-gray-50">
+      <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
+
+      <DashboardStats />
+
+      <div className="grid md:grid-cols-3 gap-6 mt-6">
+        <Link href="/products">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold mb-4">
+                Products
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Manage your product catalog</p>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button variant="default">View Products</Button>
+            </CardFooter>
+          </Card>
+        </Link>
+
+        <Link href="/inventory">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold mb-4">
+                Inventory
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Track your stock levels</p>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button variant="default">Manage Inventory</Button>
+            </CardFooter>
+          </Card>
+        </Link>
+
+        <Link href="/orders">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold mb-4">
+                Orders
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">View and process customer orders</p>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button variant="default">View Orders</Button>
+            </CardFooter>
+          </Card>
+        </Link>
+      </div>
     </div>
   );
 }
