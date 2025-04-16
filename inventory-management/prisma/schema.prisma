@@ -31,6 +31,7 @@ model orderdetail {
 model product {
   ProductID   Int           @id @default(autoincrement())
   ProductName String
+  ProductImage String
   UnitPrice   Float
   CategoryID  Int
   SupplierID  Int

@@ -1,89 +1,83 @@
-import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { PrismaClient } from "@/generated/prisma";
 
-export async function handler(req: Request) {
-  const { method } = req;
+const prisma = new PrismaClient();
+
+export async function GET(req: Request) {
   const url = new URL(req.url);
-  const id = url.searchParams.get("id"); // for GET, PUT, DELETE by ID
+  const id = url.searchParams.get("ProductID");
 
   try {
-    switch (method) {
-      case "GET":
-        if (id) {
-          // GET /api/stock?id=1
-          const stock = await prisma.stock.findUnique({
-            where: { ProductID: parseInt(id) },
-            include: { product: true },
-          });
-          if (!stock) {
-            return NextResponse.json(
-              { error: "Stock not found" },
-              { status: 404 }
-            );
-          }
-          return NextResponse.json(stock);
-        } else {
-          // GET /api/stock
-          const stocks = await prisma.stock.findMany({
-            include: { product: true },
-          });
-          return NextResponse.json(stocks);
-        }
+    if (id) {
+      // Fetch stock details for a specific ProductID from vw_all_stock view
+      const stock = await prisma.$queryRaw<any[]>`
+        SELECT ProductID, ProductName, ProductImage, QuantityInStock
+        FROM vw_all_stock
+        WHERE ProductID = ${parseInt(id)}
+      `;
 
-      case "POST": {
-        const { ProductID, QuantityInStock } = await req.json();
-        const stock = await prisma.stock.create({
-          data: {
-            ProductID,
-            QuantityInStock,
-          },
-        });
-        return NextResponse.json(stock);
-      }
+      if (stock.length === 0)
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-      case "PUT": {
-        if (!id) {
-          return NextResponse.json(
-            { error: "ProductID is required for update" },
-            { status: 400 }
-          );
-        }
-
-        const { QuantityInStock } = await req.json();
-        const updated = await prisma.stock.update({
-          where: { ProductID: parseInt(id) },
-          data: { QuantityInStock },
-        });
-        return NextResponse.json(updated);
-      }
-
-      case "DELETE": {
-        if (!id) {
-          return NextResponse.json(
-            { error: "ProductID is required for delete" },
-            { status: 400 }
-          );
-        }
-
-        const deleted = await prisma.stock.delete({
-          where: { ProductID: parseInt(id) },
-        });
-        return NextResponse.json(deleted);
-      }
-
-      default:
-        return NextResponse.json(
-          { error: "Method Not Allowed" },
-          { status: 405 }
-        );
+      return NextResponse.json(stock[0]);
     }
+
+    // Fetch all stock details from the vw_all_stock view
+    const stocks = await prisma.$queryRaw<any[]>`
+      SELECT ProductID, ProductName, ProductImage, QuantityInStock
+      FROM vw_all_stock
+    `;
+
+    return NextResponse.json(stocks);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching stock:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Failed to fetch stock." },
       { status: 500 }
     );
   }
 }
 
-export { handler as GET, handler as POST, handler as PUT, handler as DELETE };
+export async function POST(req: Request) {
+  const { ProductID, QuantityInStock } = await req.json();
+
+  try {
+    await prisma.$executeRaw`CALL sp_insert_stock(${ProductID}, ${QuantityInStock})`;
+    return NextResponse.json({ message: "Stock added." });
+  } catch (error) {
+    console.error("Error inserting stock:", error);
+    return NextResponse.json({ error: "Insert failed." }, { status: 500 });
+  }
+}
+
+export async function PUT(req: Request) {
+  const { ProductID, QuantityInStock } = await req.json();
+
+  if (!ProductID) {
+    return NextResponse.json({ error: "ProductID required" }, { status: 400 });
+  }
+
+  try {
+    await prisma.$executeRaw`CALL sp_update_stock(${ProductID}, ${QuantityInStock})`;
+    return NextResponse.json({ message: "Stock updated." });
+  } catch (error) {
+    console.error("Error updating stock:", error);
+    return NextResponse.json({ error: "Update failed." }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  const { ProductID } = await req.json();
+
+  if (!ProductID) {
+    return NextResponse.json({ error: "ProductID required" }, { status: 400 });
+  }
+
+  try {
+    await prisma.$executeRaw`CALL sp_delete_stock(${ProductID})`;
+    return NextResponse.json({ message: "Stock deleted." });
+  } catch (error) {
+    console.error("Error deleting stock:", error);
+    return NextResponse.json({ error: "Delete failed." }, { status: 500 });
+  }
+}

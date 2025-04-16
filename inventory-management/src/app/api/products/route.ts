@@ -1,14 +1,15 @@
-import { NextResponse } from "next/server";
 import { PrismaClient } from "@/generated/prisma";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
 // POST: Insert a new product
 export async function POST(req: Request) {
-  const { ProductName, UnitPrice, CategoryID, SupplierID } = await req.json();
+  const { ProductName, UnitPrice, CategoryID, SupplierID, ProductImage } =
+    await req.json();
 
   try {
-    await prisma.$executeRaw`CALL sp_insert_product(${ProductName}, ${UnitPrice}, ${CategoryID}, ${SupplierID})`;
+    await prisma.$executeRaw`CALL sp_insert_product(${ProductName}, ${ProductImage}, ${UnitPrice}, ${CategoryID}, ${SupplierID})`;
     return NextResponse.json({ message: "Product inserted successfully." });
   } catch (error) {
     console.error("Error inserting product:", error);
@@ -19,13 +20,18 @@ export async function POST(req: Request) {
   }
 }
 
-// PUT: Update a product
 export async function PUT(req: Request) {
-  const { ProductID, ProductName, UnitPrice, CategoryID, SupplierID } =
-    await req.json();
+  const {
+    ProductID,
+    ProductName,
+    UnitPrice,
+    CategoryID,
+    SupplierID,
+    ProductImage,
+  } = await req.json();
 
   try {
-    await prisma.$executeRaw`CALL sp_update_product(${ProductID}, ${ProductName}, ${UnitPrice}, ${CategoryID}, ${SupplierID})`;
+    await prisma.$executeRaw`CALL sp_update_product(${ProductID}, ${ProductName}, ${ProductImage}, ${UnitPrice}, ${CategoryID}, ${SupplierID})`;
     return NextResponse.json({ message: "Product updated successfully." });
   } catch (error) {
     console.error("Error updating product:", error);
@@ -59,20 +65,19 @@ export async function DELETE(req: Request) {
   }
 }
 
-// GET: Fetch one product by ID or all products
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const productId = searchParams.get("ProductID");
 
   try {
     if (productId) {
-      // Fetch one product
-      const product = await prisma.product.findUnique({
-        where: { ProductID: parseInt(productId) },
-      });
+      // Fetch one product by ID using parameterized query
+      const product = await prisma.$queryRaw<
+        any[]
+      >`SELECT * FROM vw_all_products WHERE ProductID = ${parseInt(productId)}`;
 
-      if (product) {
-        return NextResponse.json({ product });
+      if (product.length > 0) {
+        return NextResponse.json({ product: product[0] });
       } else {
         return NextResponse.json(
           { error: "Product not found." },
@@ -81,7 +86,9 @@ export async function GET(req: Request) {
       }
     } else {
       // Fetch all products
-      const products = await prisma.product.findMany();
+      const products = await prisma.$queryRaw<any[]>`
+        SELECT * FROM vw_all_products
+      `;
       return NextResponse.json({ products });
     }
   } catch (error) {

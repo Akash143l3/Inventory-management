@@ -134,6 +134,7 @@ exports.Prisma.OrderdetailScalarFieldEnum = {
 exports.Prisma.ProductScalarFieldEnum = {
   ProductID: 'ProductID',
   ProductName: 'ProductName',
+  ProductImage: 'ProductImage',
   UnitPrice: 'UnitPrice',
   CategoryID: 'CategoryID',
   SupplierID: 'SupplierID'
@@ -155,7 +156,8 @@ exports.Prisma.NullsOrder = {
 };
 
 exports.Prisma.productOrderByRelevanceFieldEnum = {
-  ProductName: 'ProductName'
+  ProductName: 'ProductName',
+  ProductImage: 'ProductImage'
 };
 
 

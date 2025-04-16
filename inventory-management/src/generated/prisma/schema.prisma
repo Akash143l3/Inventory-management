@@ -8,36 +8,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Product {
-  ProductID    Int           @id @default(autoincrement())
-  ProductName  String
-  UnitPrice    Float
-  CategoryID   Int
-  SupplierID   Int
-  stock        Stock?
-  OrderDetails OrderDetail[]
+model order {
+  OrderID     Int           @id @default(autoincrement())
+  OrderDate   DateTime
+  CustomerID  Int?
+  orderdetail orderdetail[]
 }
 
-model Stock {
-  ProductID       Int     @id
-  QuantityInStock Int
-  product         Product @relation(fields: [ProductID], references: [ProductID])
-}
-
-model Order {
-  OrderID      Int           @id @default(autoincrement())
-  OrderDate    DateTime
-  CustomerID   Int
-  orderDetails OrderDetail[]
-}
-
-model OrderDetail {
-  OrderDetailID Int   @id @default(autoincrement())
+model orderdetail {
+  OrderDetailID Int     @id @default(autoincrement())
   OrderID       Int
   ProductID     Int
   Quantity      Int
   Price         Float
+  order         order   @relation(fields: [OrderID], references: [OrderID], map: "OrderDetail_OrderID_fkey")
+  product       product @relation(fields: [ProductID], references: [ProductID], map: "OrderDetail_ProductID_fkey")
 
-  order   Order   @relation(fields: [OrderID], references: [OrderID])
-  product Product @relation(fields: [ProductID], references: [ProductID])
+  @@index([OrderID], map: "OrderDetail_OrderID_fkey")
+  @@index([ProductID], map: "OrderDetail_ProductID_fkey")
+}
+
+model product {
+  ProductID    Int           @id @default(autoincrement())
+  ProductName  String
+  ProductImage String
+  UnitPrice    Float
+  CategoryID   Int
+  SupplierID   Int
+  orderdetail  orderdetail[]
+  stock        stock?
+}
+
+model stock {
+  ProductID       Int     @id
+  QuantityInStock Int
+  product         product @relation(fields: [ProductID], references: [ProductID], map: "Stock_ProductID_fkey")
 }
