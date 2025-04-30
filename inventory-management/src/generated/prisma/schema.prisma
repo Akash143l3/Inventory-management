@@ -31,7 +31,7 @@ model orderdetail {
 model product {
   ProductID    Int           @id @default(autoincrement())
   ProductName  String
-  ProductImage String
+  ProductImage String?       @db.Text // Changed from Bytes? to String? with Text type
   UnitPrice    Float
   CategoryID   Int
   SupplierID   Int

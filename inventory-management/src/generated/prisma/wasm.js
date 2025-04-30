@@ -156,7 +156,8 @@ exports.Prisma.NullsOrder = {
 };
 
 exports.Prisma.productOrderByRelevanceFieldEnum = {
-  ProductName: 'ProductName'
+  ProductName: 'ProductName',
+  ProductImage: 'ProductImage'
 };
 
 

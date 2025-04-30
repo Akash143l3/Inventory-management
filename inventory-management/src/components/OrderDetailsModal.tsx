@@ -10,7 +10,7 @@ interface Order {
   CustomerID: number;
   ProductID: number;
   ProductName: string;
-  ProductImage: string;
+  ProductImage: string | null | undefined; // Allow null or undefined values
   Quantity: number;
   Price: number;
   TotalPrice: number;
@@ -29,6 +29,11 @@ export default function OrderDetailsModal({
     const date = new Date(dateString);
     return date.toLocaleDateString();
   }
+
+  // Function to check if the image source is valid
+  const hasValidImage = (src: string | null | undefined): boolean => {
+    return typeof src === "string" && src.length > 0;
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -57,16 +62,17 @@ export default function OrderDetailsModal({
             <h3 className="text-gray-700 font-medium mb-3">Product</h3>
             <div className="flex items-center">
               <div className="h-20 w-20 relative mr-4 bg-gray-100 rounded-md overflow-hidden">
-                {order.ProductImage ? (
+                {hasValidImage(order.ProductImage) ? (
                   <Image
-                    src={order.ProductImage}
+                    src={order.ProductImage as string}
                     alt={order.ProductName}
                     fill
+                    sizes="80px"
                     className="object-cover"
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                    No Image
+                    <span className="text-xs text-center">No Image</span>
                   </div>
                 )}
               </div>

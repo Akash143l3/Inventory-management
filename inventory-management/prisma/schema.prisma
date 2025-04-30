@@ -29,14 +29,14 @@ model orderdetail {
 }
 
 model product {
-  ProductID   Int           @id @default(autoincrement())
-  ProductName String
-  ProductImage  Bytes?
-  UnitPrice   Float
-  CategoryID  Int
-  SupplierID  Int
-  orderdetail orderdetail[]
-  stock       stock?
+  ProductID    Int           @id @default(autoincrement())
+  ProductName  String
+  ProductImage String?       @db.Text     // Changed from Bytes? to String? with Text type
+  UnitPrice    Float
+  CategoryID   Int
+  SupplierID   Int
+  orderdetail  orderdetail[]
+  stock        stock?
 }
 
 model stock {
